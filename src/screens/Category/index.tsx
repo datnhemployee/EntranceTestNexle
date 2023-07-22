@@ -1,42 +1,80 @@
+import {useNavigation} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  ScrollView,
   StatusBar,
-  Text,
+  TouchableOpacity,
   View,
   useWindowDimensions,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Images from '../../assets';
 import Background from '../../components/Background';
-import {useAppDispatch, useAppSelector} from '../../redux/store';
+import Loading from '../../components/Loading';
+import Screen from '../../components/Screen';
+import ButtonBack from '../../components/Screen/ButtonBack';
+import Header from '../../components/Screen/Header';
+import Typography from '../../components/Typography';
+import Paragraph from '../../components/Typography/Paragraph';
 import {getCategoryList} from '../../redux/category/actions';
-import {Category} from '../../redux/category/slice';
+import {Category, CategoryActions} from '../../redux/category/slice';
+import {useAppDispatch, useAppSelector} from '../../redux/store';
+import CategoryItem from './components/CategoryItem';
+import styles from './styles';
+import useCategoryRowList from './useCategoryRowList';
+import Toast from 'react-native-toast-message';
 
 type CategoryScreenProps = {};
 
-const NUM_CATEGORY_PER_ROW = 3;
-
 const CategoryScreen: React.FC<CategoryScreenProps> = () => {
+  const navigation = useNavigation<any>();
   const dimension = useWindowDimensions();
   const dispatch = useAppDispatch();
+  const safeInset = useSafeAreaInsets();
 
   const categoryList = useAppSelector(state => state.category.data);
+  const pickedList = useAppSelector(state => state.category.pickedList);
+  const rowList = useCategoryRowList(categoryList);
   const status = useAppSelector(state => state.category.status);
 
-  const categoryWidth = (dimension.width - 16 * 2 - 8 * 2) / 3;
+  const checkPickedCategory = (category: Category) => {
+    const pickedIndex = pickedList?.findIndex?.(
+      picked => picked?.id === category?.id,
+    );
+    return pickedIndex > -1;
+  };
+
+  const onPressCategory = (category: Category) => {
+    const clone = JSON.parse(JSON.stringify(pickedList)) as Category[];
+    const pickedIndex = clone?.findIndex?.(
+      picked => picked?.id === category?.id,
+    );
+    if (pickedIndex < 0) {
+      dispatch(CategoryActions.setPickedList([...clone, category]));
+      return;
+    }
+    clone.splice(pickedIndex, 1);
+    dispatch(CategoryActions.setPickedList(clone));
+  };
 
   useEffect(() => {
     (async () => {
       try {
         await dispatch(getCategoryList()).unwrap();
+        Toast.show({
+          type: 'success',
+          text1: 'Done!',
+          text2: 'Fetch success!',
+        });
       } catch (error) {
-        console.log('Got error on fetch category list');
+        console.log('Got error on fetch category list', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Failed!',
+          text2: 'Something went wrong!',
+        });
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -45,102 +83,46 @@ const CategoryScreen: React.FC<CategoryScreenProps> = () => {
 
       <Background source={Images.Background.Category} />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}>
-        <ScrollView
-          style={{
-            minHeight: '100%',
-          }}
-          showsVerticalScrollIndicator={false}
-          bounces={false}>
-          <LinearGradient
-            colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.8)', 'rgba(0,0,0,1)']}
-            locations={[0, 0.4, 0.6]}
-            style={{
-              minHeight: dimension.height,
-              paddingHorizontal: 16,
-            }}>
-            <View
-              style={{
-                marginTop: dimension.height * 0.3,
-              }}
-            />
-            <Text
-              style={{
-                color: 'white',
-                fontSize: 24,
-              }}>
-              Wellcome to Nexle Entrance Test
-            </Text>
+      <Screen locations={[0, 0.2, 0.3]}>
+        <View style={{marginTop: dimension.height * 0.3}} />
+        <Typography level="h1">Wellcome to Nexle Entrance Test</Typography>
 
-            <View
-              style={{
-                flexDirection: 'row',
-                marginTop: 11,
-              }}>
-              <View style={{flex: 1}}>
-                <Text
-                  style={{
-                    color: 'white',
-                    fontSize: 14,
-                  }}>
-                  Please select categories what you would like to
-                  {'\n'}see on your feed. You can set this later on Filter.
-                </Text>
-              </View>
+        <Paragraph style={styles.subTitle} level="body">
+          Please select categories what you would like to
+          {'\n'}see on your feed. You can set this later on Filter.
+        </Paragraph>
+
+        {!!rowList?.length &&
+          rowList.map((row: Category[]) => (
+            <View style={styles.categoryRow}>
+              {row.map((category, categoryIndex) => (
+                <CategoryItem
+                  data={category}
+                  index={categoryIndex}
+                  onPress={onPressCategory}
+                  isPicked={checkPickedCategory(category)}
+                />
+              ))}
             </View>
+          ))}
 
-            {!!categoryList?.length &&
-              categoryList
-                .reduce<Category[][]>((prevList, category, index) => {
-                  if (!prevList?.length) {
-                    return [[category]];
-                  }
-                  if (index % NUM_CATEGORY_PER_ROW === 0) {
-                    prevList.push([category]);
-                    return prevList;
-                  }
-                  const prevRow = prevList[prevList.length - 1];
-                  prevRow.push(category);
-                  return prevList;
-                }, [])
-                .map((row: Category[]) => (
-                  <View style={{flexDirection: 'row', marginTop: 20}}>
-                    {row.map((category, categoryIndex) => (
-                      <View
-                        style={{
-                          marginLeft: categoryIndex ? 8 : 0,
-                          width: categoryWidth,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          borderColor: 'white',
-                          borderRadius: 8,
-                          borderWidth: 1,
-                          height: 71,
-                        }}>
-                        <Text
-                          style={{
-                            color: 'white',
-                            fontSize: 14,
-                            textAlign: 'center',
-                          }}>
-                          {category?.name}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                ))}
+        <View style={{height: safeInset.bottom + 33}} />
+      </Screen>
 
-            <SafeAreaView />
-          </LinearGradient>
-        </ScrollView>
+      {status === 'loading' && <Loading />}
 
-        <View style={{position: 'absolute', top: 0, left: 0, right: 0}}>
-          <SafeAreaView />
-          <Text>Back</Text>
-        </View>
-      </KeyboardAvoidingView>
+      <Header>
+        <ButtonBack onPress={navigation.goBack} />
+
+        <TouchableOpacity
+          style={[
+            styles.buttonDone,
+            !pickedList?.length ? styles.buttonDoneDisabled : {},
+          ]}
+          disabled={!pickedList?.length}>
+          <Typography level="button">Done</Typography>
+        </TouchableOpacity>
+      </Header>
     </>
   );
 };

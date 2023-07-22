@@ -1,5 +1,4 @@
-import {SignInSuccess} from '../mock/auth';
-import BaseApi from './base';
+import {PublicApi} from './base';
 
 export type SignUpPayload = {
   email: string;
@@ -12,12 +11,18 @@ export type SignUpOpts =
     }>
   | undefined;
 
-const signUp = async (payload: SignUpPayload, opts?: SignUpOpts) => {
-  // const response = await BaseApi.post('auth/signup', {
-  //   ...opts,
-  //   ...payload,
-  // });
-  // return response?.data;
+const signUp = async (
+  payload: SignUpPayload,
+  opts: SignUpOpts = {
+    firstName: 'Tester',
+    lastName: 'Mr',
+  },
+) => {
+  const response = await PublicApi.post('auth/signup', {
+    ...opts,
+    ...payload,
+  });
+  return response?.data;
 };
 
 type SignInPayload = {
@@ -38,9 +43,8 @@ export type SignInResponse = {
   refreshToken: string;
 };
 const signIn = async (payload: SignInPayload) => {
-  // const response = await BaseApi.post('auth/signup', payload);
-  // return response?.data as SignInResponse;
-  return SignInSuccess;
+  const response = await PublicApi.post('auth/signup', payload);
+  return response?.data as SignInResponse;
 };
 
 const AuthService = {

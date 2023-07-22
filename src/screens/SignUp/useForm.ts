@@ -12,7 +12,7 @@ type SignUpErrors = Partial<{
 const EMAIL_REGEX =
   /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
 const PASSWORD_MIN_LENGTH = 6;
-const PASSWORD_MAX_LENGTH = 18;
+export const PASSWORD_MAX_LENGTH = 18;
 
 const useForm = () => {
   const [form, setForm] = useState<SignUpForm>({
@@ -20,6 +20,7 @@ const useForm = () => {
     password: '',
   });
   const [errors, setErrors] = useState<SignUpErrors>({});
+  const [hasError, setHasError] = useState(false);
 
   const validateField = (key: keyof SignUpForm, value: string) => {
     switch (key) {
@@ -46,7 +47,7 @@ const useForm = () => {
     }
   };
 
-  const onChange = (key: keyof SignUpForm) => (value: string) => {
+  const onChangeAndValidate = (key: keyof SignUpForm) => (value: string) => {
     const nextForm = {...form, [key]: value};
     const nextErrors = Object.keys(nextForm).reduce((errs, nextKey) => {
       const errorKey = nextKey as keyof SignUpForm;
@@ -57,12 +58,14 @@ const useForm = () => {
       }
       return {...errs, [nextKey]: nextError};
     }, {});
+    const nextHasError = !!Object.keys(nextErrors).length;
 
     setForm(nextForm);
     setErrors(nextErrors);
+    setHasError(nextHasError);
   };
 
-  return {form, errors, onChange};
+  return {form, errors, hasError, onChangeAndValidate};
 };
 
 export default useForm;

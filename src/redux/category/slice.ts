@@ -9,18 +9,25 @@ export type Category = {
   name: string;
 };
 
-export type CategoryState = ListState<Category>;
+export type CategoryState = ListState<Category> & {
+  pickedList: Category[];
+};
 
 const INITIAL_STATE: CategoryState = {
   data: [],
   status: 'new',
   message: '',
+  pickedList: [],
 };
 
 const Slice = createSlice({
   name: 'category',
   initialState: INITIAL_STATE,
-  reducers: {},
+  reducers: {
+    setPickedList: (state, action) => {
+      state.pickedList = action.payload;
+    },
+  },
   extraReducers: builder => {
     builder.addCase(getCategoryList.pending, state => {
       state.status = 'loading';
@@ -37,4 +44,4 @@ const Slice = createSlice({
   },
 });
 
-export const {reducer: CategoryReducer} = Slice;
+export const {reducer: CategoryReducer, actions: CategoryActions} = Slice;
