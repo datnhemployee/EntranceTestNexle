@@ -18,6 +18,8 @@ type CategoryScreenProps = {};
 const CategoryScreen: React.FC<CategoryScreenProps> = () => {
   const dimension = useWindowDimensions();
 
+  const categoryWidth = (dimension.width - 16 * 2 - 8 * 2) / 3;
+
   return (
     <>
       <StatusBar barStyle="light-content" />
@@ -38,14 +40,13 @@ const CategoryScreen: React.FC<CategoryScreenProps> = () => {
             locations={[0, 0.4, 0.6]}
             style={{
               minHeight: dimension.height,
-              paddingHorizontal: 32,
+              paddingHorizontal: 16,
             }}>
             <View
               style={{
                 marginTop: dimension.height * 0.3,
               }}
             />
-
             <Text
               style={{
                 color: 'white',
@@ -54,6 +55,75 @@ const CategoryScreen: React.FC<CategoryScreenProps> = () => {
               Wellcome to Nexle Entrance Test
             </Text>
 
+            <View
+              style={{
+                flexDirection: 'row',
+                marginTop: 11,
+              }}>
+              <View style={{flex: 1}}>
+                <Text
+                  style={{
+                    color: 'white',
+                    fontSize: 14,
+                  }}>
+                  Please select categories what you would like to
+                  {'\n'}see on your feed. You can set this later on Filter.
+                </Text>
+              </View>
+            </View>
+
+            <View style={{flexDirection: 'row', marginTop: 20}}>
+              <View
+                style={{
+                  width: categoryWidth,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderColor: 'white',
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  height: 71,
+                }}>
+                <Text
+                  style={{color: 'white', fontSize: 14, textAlign: 'center'}}>
+                  I Need Help
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  marginLeft: 8,
+                  width: categoryWidth,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderColor: 'white',
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  height: 71,
+                }}>
+                <Text
+                  style={{color: 'white', fontSize: 14, textAlign: 'center'}}>
+                  Helpful Tips
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  marginLeft: 8,
+                  width: categoryWidth,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderColor: 'white',
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  height: 71,
+                  paddingHorizontal: 8,
+                }}>
+                <Text
+                  style={{color: 'white', fontSize: 14, textAlign: 'center'}}>
+                  Eating Disorders
+                </Text>
+              </View>
+            </View>
             <SafeAreaView />
           </LinearGradient>
         </ScrollView>
