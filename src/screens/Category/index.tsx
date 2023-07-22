@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,13 +12,32 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Images from '../../assets';
 import Background from '../../components/Background';
+import {useAppDispatch, useAppSelector} from '../../redux/store';
+import {getCategoryList} from '../../redux/category/actions';
+import {Category} from '../../redux/category/slice';
 
 type CategoryScreenProps = {};
 
+const NUM_CATEGORY_PER_ROW = 3;
+
 const CategoryScreen: React.FC<CategoryScreenProps> = () => {
   const dimension = useWindowDimensions();
+  const dispatch = useAppDispatch();
+
+  const categoryList = useAppSelector(state => state.category.data);
+  const status = useAppSelector(state => state.category.status);
 
   const categoryWidth = (dimension.width - 16 * 2 - 8 * 2) / 3;
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await dispatch(getCategoryList()).unwrap();
+      } catch (error) {
+        console.log('Got error on fetch category list');
+      }
+    })();
+  }, []);
 
   return (
     <>
@@ -72,58 +91,47 @@ const CategoryScreen: React.FC<CategoryScreenProps> = () => {
               </View>
             </View>
 
-            <View style={{flexDirection: 'row', marginTop: 20}}>
-              <View
-                style={{
-                  width: categoryWidth,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderColor: 'white',
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  height: 71,
-                }}>
-                <Text
-                  style={{color: 'white', fontSize: 14, textAlign: 'center'}}>
-                  I Need Help
-                </Text>
-              </View>
+            {!!categoryList?.length &&
+              categoryList
+                .reduce<Category[][]>((prevList, category, index) => {
+                  if (!prevList?.length) {
+                    return [[category]];
+                  }
+                  if (index % NUM_CATEGORY_PER_ROW === 0) {
+                    prevList.push([category]);
+                    return prevList;
+                  }
+                  const prevRow = prevList[prevList.length - 1];
+                  prevRow.push(category);
+                  return prevList;
+                }, [])
+                .map((row: Category[]) => (
+                  <View style={{flexDirection: 'row', marginTop: 20}}>
+                    {row.map((category, categoryIndex) => (
+                      <View
+                        style={{
+                          marginLeft: categoryIndex ? 8 : 0,
+                          width: categoryWidth,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          borderColor: 'white',
+                          borderRadius: 8,
+                          borderWidth: 1,
+                          height: 71,
+                        }}>
+                        <Text
+                          style={{
+                            color: 'white',
+                            fontSize: 14,
+                            textAlign: 'center',
+                          }}>
+                          {category?.name}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                ))}
 
-              <View
-                style={{
-                  marginLeft: 8,
-                  width: categoryWidth,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderColor: 'white',
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  height: 71,
-                }}>
-                <Text
-                  style={{color: 'white', fontSize: 14, textAlign: 'center'}}>
-                  Helpful Tips
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  marginLeft: 8,
-                  width: categoryWidth,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderColor: 'white',
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  height: 71,
-                  paddingHorizontal: 8,
-                }}>
-                <Text
-                  style={{color: 'white', fontSize: 14, textAlign: 'center'}}>
-                  Eating Disorders
-                </Text>
-              </View>
-            </View>
             <SafeAreaView />
           </LinearGradient>
         </ScrollView>

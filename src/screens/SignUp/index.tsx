@@ -1,6 +1,6 @@
+import {useNavigation} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -14,15 +14,19 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Images from '../../assets';
-import useKeyboardKit from './useKeyboardKit';
-import {useNavigation} from '@react-navigation/native';
 import Background from '../../components/Background';
+import {signUpAndSignIn} from '../../redux/auth/actions';
+import {useAppDispatch} from '../../redux/store';
+import useForm from './useForm';
+import useKeyboardKit from './useKeyboardKit';
 
 type SignInScreenProps = {};
 
 const SignInScreen: React.FC<SignInScreenProps> = () => {
+  const dispatch = useAppDispatch();
   const navigation = useNavigation();
   const dimension = useWindowDimensions();
+  const form = useForm();
 
   const ref = useRef(null);
   const refLastInput = useRef(null);
@@ -59,7 +63,12 @@ const SignInScreen: React.FC<SignInScreenProps> = () => {
   };
 
   const onSignUp = async () => {
-    navigation.navigate('Category');
+    try {
+      await dispatch(signUpAndSignIn(form.form)).unwrap();
+      navigation.navigate('Category');
+    } catch (error) {
+      console.log('Something went wrong!', error);
+    }
   };
 
   return (
@@ -115,10 +124,21 @@ const SignInScreen: React.FC<SignInScreenProps> = () => {
                     borderColor: 'white',
                     padding: 0,
                   }}
-                  value="Testmail@gmail.com"
+                  value={form.form.email}
                   includeFontPadding={false}
                   onFocus={scrollToField}
+                  onChangeText={form.onChange('email')}
                 />
+
+                {!!form?.errors?.email && (
+                  <Text
+                    style={{
+                      color: 'red',
+                      fontSize: 12,
+                    }}>
+                    {form?.errors?.email}
+                  </Text>
+                )}
               </View>
 
               <View style={{marginTop: 26}}>
@@ -132,9 +152,20 @@ const SignInScreen: React.FC<SignInScreenProps> = () => {
                 <TextInput
                   style={{color: 'white', padding: 0}}
                   includeFontPadding={false}
-                  value="Testmail@gmail.com"
+                  value={form.form.password}
                   secureTextEntry
+                  onChangeText={form.onChange('password')}
                 />
+
+                {!!form?.errors?.email && (
+                  <Text
+                    style={{
+                      color: 'red',
+                      fontSize: 12,
+                    }}>
+                    {form?.errors?.password}
+                  </Text>
+                )}
               </View>
 
               <View
